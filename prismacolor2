@@ -125,6 +125,29 @@
         .prose li { margin-bottom: 0.5em; }
         .prose strong { color: #e2e8f0; }
         .prose p { margin-bottom: 0.8em; line-height: 1.6; color: #94a3b8; }
+
+        .math-choice {
+            transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+        }
+        .math-choice:hover,
+        .math-choice:focus-visible {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 16px 32px -18px rgba(99, 102, 241, 0.9);
+        }
+        .math-choice.correct {
+            background: linear-gradient(135deg, #22c55e, #14b8a6);
+            color: #052e16;
+        }
+        .math-choice.incorrect {
+            background: linear-gradient(135deg, #fb7185, #f97316);
+            color: #450a0a;
+        }
+        .math-bounce { animation: mathBounce 0.45s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        @keyframes mathBounce {
+            0% { transform: scale(0.92); }
+            60% { transform: scale(1.06); }
+            100% { transform: scale(1); }
+        }
     </style>
 </head>
 <body class="flex flex-col h-screen w-screen overflow-hidden">
@@ -137,6 +160,9 @@
         </div>
         <div class="flex items-center gap-4">
             <span id="fileNameDisplay" class="text-xs font-mono text-slate-400 hidden md:block"></span>
+            <button id="mathGameBtn" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 px-3 py-1.5 rounded-full text-xs font-bold transition shadow-lg shadow-emerald-900/30 flex items-center gap-2">
+                <i class="fas fa-calculator"></i> Kids Math Game
+            </button>
             <button id="resetBtn" class="bg-slate-800 hover:bg-slate-700 text-white px-3 py-1.5 rounded text-xs font-medium transition hidden border border-slate-600">
                 New Project
             </button>
@@ -285,6 +311,61 @@
 
         </aside>
 
+
+        <!-- Kids Math Game Modal -->
+        <div id="mathGameModal" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm hidden flex items-center justify-center p-4">
+            <div class="w-full max-w-xl rounded-3xl border border-emerald-300/30 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 shadow-2xl overflow-hidden math-bounce">
+                <div class="p-5 sm:p-6 bg-white/5 border-b border-white/10 flex items-start justify-between gap-4">
+                    <div>
+                        <p class="text-xs uppercase tracking-[0.3em] text-emerald-300 font-bold mb-2">Brain Boost</p>
+                        <h2 class="text-2xl sm:text-3xl font-black text-white flex items-center gap-3">
+                            <span class="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-yellow-300 text-slate-950 shadow-lg">🧮</span>
+                            Kids Math Quest
+                        </h2>
+                        <p class="text-slate-300 text-sm mt-2">Pick the right answer, earn stars, and practice friendly addition and subtraction.</p>
+                    </div>
+                    <button id="closeMathGame" class="text-slate-300 hover:text-white bg-white/10 hover:bg-white/20 rounded-full h-10 w-10 flex items-center justify-center transition" aria-label="Close math game">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <div class="p-5 sm:p-6 space-y-5">
+                    <div class="grid grid-cols-3 gap-3 text-center">
+                        <div class="rounded-2xl bg-slate-950/60 border border-white/10 p-3">
+                            <p class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Score</p>
+                            <p id="mathScore" class="text-2xl font-black text-emerald-300">0</p>
+                        </div>
+                        <div class="rounded-2xl bg-slate-950/60 border border-white/10 p-3">
+                            <p class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Streak</p>
+                            <p id="mathStreak" class="text-2xl font-black text-yellow-300">0</p>
+                        </div>
+                        <div class="rounded-2xl bg-slate-950/60 border border-white/10 p-3">
+                            <p class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Level</p>
+                            <select id="mathLevel" class="mt-1 bg-transparent text-cyan-200 font-bold text-sm focus:outline-none">
+                                <option value="easy">Easy</option>
+                                <option value="medium">Medium</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="rounded-3xl bg-slate-950/70 border border-white/10 p-5 text-center shadow-inner">
+                        <p class="text-xs uppercase tracking-[0.25em] text-indigo-300 font-bold mb-3">Solve this</p>
+                        <div id="mathQuestion" class="text-5xl sm:text-6xl font-black text-white tracking-tight">3 + 4 = ?</div>
+                        <p id="mathFeedback" class="mt-4 min-h-[1.75rem] text-lg font-bold text-slate-300">Choose an answer to begin!</p>
+                    </div>
+
+                    <div id="mathChoices" class="grid grid-cols-2 gap-3" aria-label="Answer choices"></div>
+
+                    <div class="flex items-center justify-between gap-3">
+                        <div id="mathStars" class="text-2xl tracking-widest" aria-label="Stars earned">☆☆☆☆☆</div>
+                        <button id="newMathQuestion" class="bg-indigo-500 hover:bg-indigo-400 text-white px-5 py-3 rounded-2xl text-sm font-black transition shadow-lg shadow-indigo-900/30">
+                            New Question
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- AI Modal -->
         <div id="aiModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
             <div class="bg-slate-900 border border-slate-700 w-full max-w-2xl max-h-[80vh] rounded-xl flex flex-col shadow-2xl relative">
@@ -388,6 +469,17 @@
             closeAiModal: document.getElementById('closeAiModal'),
             aiContent: document.getElementById('aiContent'),
             aiLoading: document.getElementById('aiLoading'),
+            mathGameBtn: document.getElementById('mathGameBtn'),
+            mathGameModal: document.getElementById('mathGameModal'),
+            closeMathGame: document.getElementById('closeMathGame'),
+            mathScore: document.getElementById('mathScore'),
+            mathStreak: document.getElementById('mathStreak'),
+            mathLevel: document.getElementById('mathLevel'),
+            mathQuestion: document.getElementById('mathQuestion'),
+            mathFeedback: document.getElementById('mathFeedback'),
+            mathChoices: document.getElementById('mathChoices'),
+            mathStars: document.getElementById('mathStars'),
+            newMathQuestion: document.getElementById('newMathQuestion'),
             displayModeInputs: document.querySelectorAll('input[name="displayMode"]')
         };
 
@@ -398,6 +490,12 @@
         let currentPaperRGB = [255, 255, 255];
         let currentPaperName = "Standard White";
         let currentDisplayMode = 'id';
+        let mathGameState = {
+            answer: 0,
+            score: 0,
+            streak: 0,
+            locked: false
+        };
 
         // --- MATH HELPERS ---
         function hexToRgb(hex) {
@@ -681,6 +779,104 @@
             });
         }
 
+
+        // --- KIDS MATH GAME ---
+        function randomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function shuffleArray(items) {
+            return items
+                .map(value => ({ value, sort: Math.random() }))
+                .sort((a, b) => a.sort - b.sort)
+                .map(({ value }) => value);
+        }
+
+        function generateMathProblem() {
+            const isMedium = els.mathLevel.value === 'medium';
+            const maxNumber = isMedium ? 20 : 10;
+            const operation = Math.random() > (isMedium ? 0.45 : 0.65) ? '-' : '+';
+            let a = randomInt(1, maxNumber);
+            let b = randomInt(1, maxNumber);
+
+            if (operation === '-' && b > a) {
+                [a, b] = [b, a];
+            }
+
+            const answer = operation === '+' ? a + b : a - b;
+            return { question: `${a} ${operation} ${b} = ?`, answer };
+        }
+
+        function buildMathChoices(answer) {
+            const choices = new Set([answer]);
+            while (choices.size < 4) {
+                const offset = randomInt(-6, 6);
+                const option = Math.max(0, answer + (offset === 0 ? randomInt(1, 4) : offset));
+                choices.add(option);
+            }
+            return shuffleArray([...choices]);
+        }
+
+        function updateMathScoreboard() {
+            els.mathScore.textContent = mathGameState.score;
+            els.mathStreak.textContent = mathGameState.streak;
+            const filledStars = Math.min(5, mathGameState.streak);
+            els.mathStars.textContent = '★'.repeat(filledStars) + '☆'.repeat(5 - filledStars);
+        }
+
+        function showNewMathQuestion() {
+            const problem = generateMathProblem();
+            mathGameState.answer = problem.answer;
+            mathGameState.locked = false;
+            els.mathQuestion.textContent = problem.question;
+            els.mathFeedback.textContent = 'Tap the answer you think is correct.';
+            els.mathFeedback.className = 'mt-4 min-h-[1.75rem] text-lg font-bold text-slate-300';
+            els.mathChoices.innerHTML = '';
+
+            buildMathChoices(problem.answer).forEach(choice => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'math-choice rounded-2xl bg-white text-slate-950 py-5 text-3xl font-black shadow-lg focus:outline-none focus:ring-4 focus:ring-emerald-300';
+                button.textContent = choice;
+                button.addEventListener('click', () => checkMathAnswer(button, choice));
+                els.mathChoices.appendChild(button);
+            });
+        }
+
+        function checkMathAnswer(button, choice) {
+            if (mathGameState.locked) return;
+            mathGameState.locked = true;
+            const isCorrect = choice === mathGameState.answer;
+            button.classList.add(isCorrect ? 'correct' : 'incorrect');
+
+            if (isCorrect) {
+                mathGameState.score += 10;
+                mathGameState.streak += 1;
+                els.mathFeedback.textContent = mathGameState.streak >= 5 ? 'Amazing! You earned all five stars! 🌟' : 'Great job! You got it right! 🎉';
+                els.mathFeedback.className = 'mt-4 min-h-[1.75rem] text-lg font-bold text-emerald-300';
+                setTimeout(showNewMathQuestion, 900);
+            } else {
+                mathGameState.streak = 0;
+                els.mathFeedback.textContent = `Nice try! The answer was ${mathGameState.answer}.`;
+                els.mathFeedback.className = 'mt-4 min-h-[1.75rem] text-lg font-bold text-rose-300';
+                [...els.mathChoices.children].forEach(choiceButton => {
+                    if (Number(choiceButton.textContent) === mathGameState.answer) {
+                        choiceButton.classList.add('correct');
+                    }
+                });
+            }
+            updateMathScoreboard();
+        }
+
+        function openMathGame() {
+            els.mathGameModal.classList.remove('hidden');
+            showNewMathQuestion();
+        }
+
+        function closeMathGame() {
+            els.mathGameModal.classList.add('hidden');
+        }
+
         // --- GEMINI API INTEGRATION ---
         
         async function generateAIAdvice() {
@@ -742,6 +938,16 @@
         }
 
         // --- EVENTS ---
+
+        els.mathGameBtn.addEventListener('click', openMathGame);
+        els.closeMathGame.addEventListener('click', closeMathGame);
+        els.newMathQuestion.addEventListener('click', showNewMathQuestion);
+        els.mathLevel.addEventListener('change', showNewMathQuestion);
+        els.mathGameModal.addEventListener('click', (e) => {
+            if (e.target === els.mathGameModal) closeMathGame();
+        });
+        updateMathScoreboard();
+        showNewMathQuestion();
 
         els.displayModeInputs.forEach(radio => {
             radio.addEventListener('change', (e) => {
